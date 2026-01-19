@@ -40,3 +40,7 @@ Thumbs.db
 
 # Workspace-wide metadata (in parent folder)
 ../.metadata/
+
+
+build/
+EWARM/
