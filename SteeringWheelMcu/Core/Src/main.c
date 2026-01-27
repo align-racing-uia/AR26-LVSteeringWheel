@@ -92,17 +92,130 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_FDCAN1_Init();
+
+
+
+
+
+
   /* USER CODE BEGIN 2 */
 
+
+  
+    //GPIO_PIN_SET == 1 (presset ned)
+    //GPIO_PIN_RESET == 0 (ikke presset ned)
+
+
+    //Initializer for debouncing
+      static GPIO_PinState last_raw = GPIO_PIN_RESET;
+      static GPIO_PinState stable = GPIO_PIN_RESET;
+      static uint32_t last_change_ms = 0; 
+
+      GPIO_PinState raw = HAL_GPIO_ReadPin(Button1_GPIO_Port, Button1_Pin);
+      uint32_t now_ms = HAL_GetTick();
+
+    //Initializer for Press and hold
+      static uint32_t press_start_ms = 0;
+      static uint8_t hold_fired = 0; 
+
+      //pressed armed er ikke nødvendig men gjør det ekstra sikkert at det ikke 
+      //kan gå noe feil
+
+      static uint8_t pressed_armed = 0;
+
+
+ 
+
   /* USER CODE END 2 */
+
+
+
+
+
+
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+
+
+
+      //snapshot for å sjekke for debouncing
+
+      //Vil kjøre hvergang det er en change
+      if (raw != last_raw) {
+
+        last_raw = raw;
+        last_change_ms = now_ms;
+
+      }
+
+
+      //om forrige if statement ikke har kjørt på 20ms og den nye raw lesingen er forskjellig fra stable (den forrige stabile verdien)
+      //så vil if statementen kjøre. 
+      //for debouncing (20ms)
+      if  ((now_ms - last_change_ms) >= 20 && raw != stable)  {
+
+
+          //lagrer den nye verdien som skal være stable (faktisk brukt)
+          GPIO_PinState prev_stable = stable;
+          stable = raw;
+
+
+          //bare aktiver om går fra ikke trykk til trykk. Ikke vis den går fra trykk til ikke trykk.
+          if(prev_stable == GPIO_PIN_RESET && stable == GPIO_PIN_SET){
+
+            printf("KNAPP1! TRYKK\n");
+            press_start_ms = now_ms;
+            hold_fired = 0;
+            pressed_armed = 1;
+
+          }
+
+          if (prev_stable == GPIO_PIN_SET && stable == GPIO_PIN_RESET){
+
+
+            //ikke nødvendig men gjør det ekstra sikkert at press and hold if statement ikke kjører tilfelle en teknisk feil
+            pressed_armed = 0;
+            hold_fired = 0;
+            
+
+            //om vi vil ha funksjonalitet for når knappen blir sluppet
+
+          }
+
+      }
+
+      
+          //må ligge utenfor debounce sjekken fordi debounce sjekker kjører bare når raw er forskjellig fra den forriige stabile verdien
+          //Hold må kjøres når det ikke har vært endring i den stabile verdien
+          //den får ikke bounce fordi stable blir bare SET om en endring har vært stabil i 20 ms (i debounce if statement)
+          
+          if (pressed_armed && stable == GPIO_PIN_SET && !hold_fired){
+
+            if((now_ms - press_start_ms) >= 4000){
+                printf("KNAPP1 HOLD\n");
+                hold_fired = 1;
+            }
+            
+          }
+
+
+
+
     /* USER CODE END WHILE */
 
+
     /* USER CODE BEGIN 3 */
+
+   
+
+
+
+
+
   }
   /* USER CODE END 3 */
 }

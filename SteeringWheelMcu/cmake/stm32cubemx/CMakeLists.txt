@@ -94,13 +94,3 @@ set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES ADDITIONAL_CLEAN_FILES ${
 if((CMAKE_C_STANDARD EQUAL 90) OR (CMAKE_C_STANDARD EQUAL 99))
     message(ERROR "Generated code requires C11 or higher")
 endif()
-
-
-add_subdirectory(asl)
-
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
-  asl
-  asl_utils (optional, needs a timer as described in the header file)
-  asl_can (optional, needs fdcan)
-  asl_events (optional, needs a timer and interrupts)
-)
