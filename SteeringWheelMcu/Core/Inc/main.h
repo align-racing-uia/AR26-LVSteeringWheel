@@ -57,10 +57,14 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define Rotary2_Pin GPIO_PIN_14
-#define Rotary2_GPIO_Port GPIOB
-#define Rotary1_Pin GPIO_PIN_15
-#define Rotary1_GPIO_Port GPIOB
+#define Rotary14_Pin GPIO_PIN_12
+#define Rotary14_GPIO_Port GPIOB
+#define Rotary13_Pin GPIO_PIN_13
+#define Rotary13_GPIO_Port GPIOB
+#define Rotary12_Pin GPIO_PIN_14
+#define Rotary12_GPIO_Port GPIOB
+#define Rotary11_Pin GPIO_PIN_15
+#define Rotary11_GPIO_Port GPIOB
 #define Button4_Pin GPIO_PIN_6
 #define Button4_GPIO_Port GPIOC
 #define Button3_Pin GPIO_PIN_7

@@ -52,8 +52,8 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, Button2_Pin|Button1_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : Rotary2_Pin Rotary1_Pin */
-  GPIO_InitStruct.Pin = Rotary2_Pin|Rotary1_Pin;
+  /*Configure GPIO pins : Rotary14_Pin Rotary13_Pin Rotary12_Pin Rotary11_Pin */
+  GPIO_InitStruct.Pin = Rotary14_Pin|Rotary13_Pin|Rotary12_Pin|Rotary11_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);

@@ -22,6 +22,7 @@
 #include "dma.h"
 #include "fdcan.h"
 #include "gpio.h"
+#include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -92,12 +93,6 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_FDCAN1_Init();
-
-
-
-
-
-
   /* USER CODE BEGIN 2 */
 
 
@@ -111,28 +106,24 @@ int main(void)
       static GPIO_PinState stable = GPIO_PIN_RESET;
       static uint32_t last_change_ms = 0; 
 
-      GPIO_PinState raw = HAL_GPIO_ReadPin(Button1_GPIO_Port, Button1_Pin);
-      uint32_t now_ms = HAL_GetTick();
-
+     
     //Initializer for Press and hold
       static uint32_t press_start_ms = 0;
       static uint8_t hold_fired = 0; 
 
       //pressed armed er ikke nødvendig men gjør det ekstra sikkert at det ikke 
-      //kan gå noe feil
+      //kan gå noe feil med press and hold 
 
       static uint8_t pressed_armed = 0;
 
 
- 
+    //initializerer variabler for rotary debouncing 
+      static int pos_last = -1; 
+      static int pos_stable = -1;
+      static uint32_t pos_last_change_ms = 0;
+
 
   /* USER CODE END 2 */
-
-
-
-
-
-
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -140,6 +131,10 @@ int main(void)
   {
 
 
+    
+      //leser av verdier hver loop
+      GPIO_PinState raw = HAL_GPIO_ReadPin(Button1_GPIO_Port, Button1_Pin);
+      uint32_t now_ms = HAL_GetTick();
 
 
       //snapshot for å sjekke for debouncing
@@ -148,6 +143,8 @@ int main(void)
       if (raw != last_raw) {
 
         last_raw = raw;
+
+        //now_ms blir lest av vær loop, last_change oppdateres for hver endring i input verdi
         last_change_ms = now_ms;
 
       }
@@ -202,18 +199,97 @@ int main(void)
             
           }
 
+          // Rotary switch 
 
 
+          //Leser av verdier til rotary inputs (4 per en rotary switch)
+          GPIO_PinState r1 = HAL_GPIO_ReadPin(Rotary11_GPIO_Port, Rotary11_Pin);
+          GPIO_PinState r2 = HAL_GPIO_ReadPin(Rotary12_GPIO_Port, Rotary12_Pin);
+          GPIO_PinState r3 = HAL_GPIO_ReadPin(Rotary13_GPIO_Port, Rotary13_Pin);
+          GPIO_PinState r4 = HAL_GPIO_ReadPin(Rotary14_GPIO_Port, Rotary14_Pin);
+
+
+          //gir b1 - b4 true eller false avhengig om gpio_pin_set eller gpio_pin_reset
+          uint8_t b1 = (r1 == GPIO_PIN_SET); //b1 = 1 om r1 er GPIO_PIN_SET osv
+          uint8_t b2 = (r2 == GPIO_PIN_SET);
+          uint8_t b3 = (r3 == GPIO_PIN_SET);
+          uint8_t b4 = (r4 == GPIO_PIN_SET);
+
+
+
+          //definerer ugyldig posisjons verdi for sikkerhet
+          //antar posisjonen er ygyldig til vi har gjort sjekker 
+          int pos = -1;
+
+
+          uint8_t sum = b1 + b2 + b3 + b4;
+
+          //bare om 1 av 4 inputs er aktiv er den gyldig
+          //alt annet er feil eller støy eller overgang (midt mellom to hakk)
+          if (sum == 1) {
+
+            //sjekker hvilke input som er true og setter posisjonsvariablen til å representere den inputen
+            if (b1) pos = 1; 
+            else if (b2) pos = 2;
+            else if (b3) pos = 3;
+            else pos = 4;
+
+          } else {
+
+            pos = -1;
+
+          }
+
+
+
+          
+          
+          // om endring i posisjon oppdaterer den pos i pos_last og gjør lagrer tidspunktet
+          if (pos != pos_last) {
+              pos_last = pos;
+              pos_last_change_ms = now_ms;
+          }
+
+          //om endring i posisjon ikke har skjedd på 20ms og den nye posisjonen (lagret i pos_last) ikke er lik den forrige stable pos
+          if ((now_ms - pos_last_change_ms) >= 20 && pos_last != pos_stable){
+              
+              //lagrer den nye stable posisjonen
+              pos_stable = pos_last;
+
+              //hvis posisjonen er valid vil koden kjøre
+              if (pos_stable != -1) {
+
+                printf("ROTARY1 STABLE %d\n", pos_stable);
+
+                //kode for hva som skal skje for mode/posisjons bytte
+
+              }
+
+
+          }
+
+
+
+          /* UTEN DEBOUNCE (KANSKJE NICE FOR TESTING)
+
+                  //-2 betyr ikke initialisert enda (-1 ugyldig og 1-4 gyldig)
+                  static int last_pos = -2;
+
+
+                  //if statement for å si ifra hver gang en endring i rotary input skjer (snur fra et hakk/posisjon til et annet)
+                  //if statement skjører om den nye posisjonen er gyldig og ikke lik forrige posisjon
+                  if (pos != -1 && pos != last_pos) {
+                      last_pos = pos;
+                      printf("ROTARY1 POS; %d\n", pos);
+                  }
+
+
+          */
+          
 
     /* USER CODE END WHILE */
 
-
     /* USER CODE BEGIN 3 */
-
-   
-
-
-
 
 
   }
